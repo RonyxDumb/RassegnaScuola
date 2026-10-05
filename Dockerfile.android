@@ -1,0 +1,30 @@
+FROM eclipse-temurin:17-jdk-jammy
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    ANDROID_HOME=/opt/android-sdk \
+    ANDROID_SDK_ROOT=/opt/android-sdk \
+    PATH=/opt/gradle/bin:/opt/android-sdk/cmdline-tools/latest/bin:/opt/android-sdk/platform-tools:$PATH
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl unzip libstdc++6 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Versioni fisse, così il progetto usa lo stesso ambiente a ogni build.
+ARG GRADLE_VERSION=8.7
+ARG CMDLINE_TOOLS_VERSION=11076708
+RUN curl -fL --retry 3 "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" -o /tmp/gradle.zip \
+    && unzip -q /tmp/gradle.zip -d /opt \
+    && mv "/opt/gradle-${GRADLE_VERSION}" /opt/gradle \
+    && rm /tmp/gradle.zip \
+    && mkdir -p /opt/android-sdk/cmdline-tools/latest \
+    && curl -fL --retry 3 "https://dl.google.com/android/repository/commandlinetools-linux-${CMDLINE_TOOLS_VERSION}_latest.zip" -o /tmp/sdk.zip \
+    && unzip -q /tmp/sdk.zip -d /tmp/sdk-tools \
+    && mv /tmp/sdk-tools/cmdline-tools/* /opt/android-sdk/cmdline-tools/latest/ \
+    && rm -rf /tmp/sdk.zip /tmp/sdk-tools
+
+RUN yes | sdkmanager --sdk_root=/opt/android-sdk --licenses > /tmp/android-licenses.log \
+    && sdkmanager --sdk_root=/opt/android-sdk "platforms;android-35" "build-tools;35.0.0" \
+    && rm -f /tmp/android-licenses.log
+
+WORKDIR /project
+

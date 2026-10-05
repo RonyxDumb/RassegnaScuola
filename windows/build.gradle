@@ -1,0 +1,5 @@
+plugins { id 'application' }
+java { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+application { mainClass = 'com.ronyxdumb.rassegnascuola.WindowsApp' }
+dependencies { implementation project(':shared'); implementation 'com.formdev:flatlaf:3.4.1' }
+jar { archiveFileName = 'RassegnaScuola.jar'; manifest { attributes 'Main-Class': application.mainClass.get() } }
